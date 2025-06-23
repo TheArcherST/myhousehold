@@ -1,0 +1,9 @@
+[project]
+name = "myhousehold"
+version = "0.1.0"
+
+dependencies = [
+    "frozendict",
+    "pymongo",
+    "dishka",
+]

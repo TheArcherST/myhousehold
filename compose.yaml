@@ -1,0 +1,10 @@
+name: "myhousehold"
+services:
+  mongo:
+      image: mongo
+      restart: always
+      ports:
+        - ${COMPOSE__MONGO__HOST}:${COMPOSE__MONGO__PORT}:27017
+      environment:
+        MONGO_INITDB_ROOT_USERNAME: root
+        MONGO_INITDB_ROOT_PASSWORD: ${COMPOSE__MONGO__ROOT_PASSWORD}
