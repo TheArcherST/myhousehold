@@ -1,10 +1,49 @@
 name: "myhousehold"
 services:
-  mongo:
-      image: mongo
-      restart: always
-      ports:
-        - ${COMPOSE__MONGO__HOST}:${COMPOSE__MONGO__PORT}:27017
-      environment:
-        MONGO_INITDB_ROOT_USERNAME: root
-        MONGO_INITDB_ROOT_PASSWORD: ${COMPOSE__MONGO__ROOT_PASSWORD}
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - ${COMPOSE__POSTGRES__HOST}:${COMPOSE__POSTGRES__PORT}:5432
+    environment:
+      POSTGRES_USER: ${COMPOSE__POSTGRES__USER}
+      POSTGRES_PASSWORD: ${COMPOSE__POSTGRES__PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready", "-d", "${COMPOSE__POSTGRES__DATABASE}" ]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+  rest-server:
+    build: ./python
+    command: run-rest-server
+    restart: unless-stopped
+    ports:
+      - ${COMPOSE__REST_SERVER__HOST}:${COMPOSE__REST_SERVER__PORT}:80
+    env_file: ./python/.env
+    depends_on:
+      - postgres
+  tool-alembic:
+    profiles:
+      - tools
+    build:
+      context: ./python
+      args:
+        - EXTERNAL_UID=${COMPOSE__UID}
+        - EXTERNAL_GID=${COMPOSE__GID}
+    entrypoint: /usr/src/app/alembic-entrypoint.sh
+    restart: never
+    env_file: ./python/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+  run-integration-tests:
+    profiles:
+      - tests
+    build: ./python
+    entrypoint: pytest
+
+volumes:
+  postgres_data:

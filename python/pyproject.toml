@@ -1,0 +1,30 @@
+[project]
+name = "myhousehold"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "dishka",
+    "sqlalchemy",
+    "pydantic",
+    "pydantic-settings",
+    "fastapi",
+    "uvicorn",
+    "psycopg[binary]",
+    "alembic",
+    "ruff",
+    "pytest",
+    "requests",
+    "deepdiff",
+    "authx",
+    "argon2-cffi",
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[project.scripts]
+run-rest-server = "myhousehold.server.main.run_rest_server:main"
+
+[tool.ruff]
+line-length = 79
