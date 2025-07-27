@@ -17,6 +17,7 @@ dependencies = [
     "deepdiff",
     "authx",
     "argon2-cffi",
+    "jsonschema (>=4.25.0,<5.0.0)",
 ]
 
 [build-system]

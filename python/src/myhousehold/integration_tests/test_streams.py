@@ -52,6 +52,17 @@ def test_streams(
     assert r.status_code == 201
     assert r.json()
 
+    req = api_templates.make_create_stream_entry()
+    req.path_params = {
+        "stream_id": val_stream_id,
+    }
+    req.json = {
+        "json_data": {"a": "value-with-invalid-type"},
+        "comment": None,
+    }
+    r = authed_client.prepsend(req)
+    assert r.status_code == 422
+
     req = api_templates.make_get_stream_entries()
     req.path_params = {
         "stream_id": val_stream_id,

@@ -8,7 +8,10 @@ from myhousehold.core.providers import ProviderConfig, ProviderDatabase
 from myhousehold.core.services.providers import ProviderServices
 from myhousehold.server.providers import ProviderServer
 
-from myhousehold.server.routers import router
+from myhousehold.server import (
+    exception_handlers,
+    routers,
+)
 
 
 def main():
@@ -23,7 +26,8 @@ def main():
     app = FastAPI()
     setup_dishka(container, app)
 
-    app.include_router(router)
+    exception_handlers.register(app)
+    app.include_router(routers.router)
 
     app.add_middleware(  # todo: adjust [sec]
         CORSMiddleware,

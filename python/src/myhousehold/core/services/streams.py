@@ -1,11 +1,20 @@
 from typing import Any, Iterable
 
-from sqlalchemy import select, update, or_
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from myhousehold.core.models.stream import Stream
 from myhousehold.core.models.stream_entry import StreamEntry
 from myhousehold.server.providers import AuthorizedUser
+
+
+class StreamsServiceError(Exception):
+    pass
+
+
+class StreamNotFoundError(StreamsServiceError):
+    pass
 
 
 class StreamsService:
@@ -63,16 +72,18 @@ class StreamsService:
 
     async def create_stream_entry(
             self,
-            stream: Stream,
             json_data: dict[str, Any],
             comment: str | None,
+            stream: Stream,
     ) -> StreamEntry:
         entry = StreamEntry(
-            json_data=json_data,
             comment=comment,
-            created_by_user_id=self.authorized_user.id,
+            stream=stream,
+            created_by_user=self.authorized_user,
         )
-        stream.entries.append(entry)
+        entry.json_data = json_data  # validation depends on stream
+        self.orm_session.add(entry)
+
         await self.orm_session.flush()
 
         return entry
@@ -82,21 +93,33 @@ class StreamsService:
             stream_id: int,
             entry_id: int,
             json_data: dict[str, Any],
-            comment: str,
-            is_private: bool,
+            comment: str | None,
     ) -> StreamEntry:
-        stmt = (
-            update(StreamEntry)
-            .where(StreamEntry.stream_id == stream_id)
-            .where(StreamEntry.id == entry_id)
-            .values(
+        stmt = (select(StreamEntry)
+                .where(StreamEntry.stream_id == stream_id)
+                .where(StreamEntry.id == entry_id)
+                .with_for_update()
+                .options(joinedload(StreamEntry.stream)))
+        entry = await self.orm_session.scalar(stmt)
+
+        if not entry:
+            stmt = self._accessible_streams_stmt()
+            stmt = stmt.with_for_update()
+            stream = await self.orm_session.scalar(stmt)
+            if stream is None:
+                raise StreamNotFoundError
+            entry = StreamEntry(
                 json_data=json_data,
                 comment=comment,
-                is_private=is_private,
+                created_by_user=self.authorized_user,
+                stream=stream,
             )
-            .returning(StreamEntry)
-        )
-        entry = await self.orm_session.scalar(stmt)
+            self.orm_session.add(entry)
+        else:
+            entry.json_data = json_data
+            entry.comment = comment
+
+        await self.orm_session.flush()
         return entry
 
     async def get_stream_entries(

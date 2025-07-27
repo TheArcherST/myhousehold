@@ -6,7 +6,6 @@ from myhousehold.core.models.stream import Stream
 from myhousehold.core.models.stream_entry import StreamEntry
 from myhousehold.core.services.streams import StreamsService
 from myhousehold.core.services.uow_ctl import UoWCtl
-from myhousehold.server.providers import AuthorizedUser
 from myhousehold.server.schemas.streams import (
     CreateStreamDTO,
     StreamDTO,
@@ -21,7 +20,7 @@ router = APIRouter(
 
 
 @router.post(
-    "/",
+    "",
     response_model=StreamDTO,
     status_code=status.HTTP_201_CREATED,
 )
@@ -41,7 +40,7 @@ async def create_stream(
 
 
 @router.get(
-    "/",
+    "",
     response_model=list[StreamDTO],
 )
 @inject
@@ -75,15 +74,14 @@ async def create_stream_entry(
         )
 
     entry = await streams_service.create_stream_entry(
-        stream=stream,
         json_data=payload.json_data,
         comment=payload.comment,
+        stream=stream,
     )
 
     await uow_ctl.commit()
 
     return entry
-
 
 
 @router.get(
@@ -118,7 +116,6 @@ async def put_stream_entry(
         entry_id=entry_id,
         json_data=payload.json_data,
         comment=payload.comment,
-        is_private=payload.is_private,
     )
     if entry is None:
         raise HTTPException(

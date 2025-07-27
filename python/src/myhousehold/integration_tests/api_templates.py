@@ -38,19 +38,19 @@ class PatchedRequest(Request):
 def make_create_stream():
     return PatchedRequest(
         method="POST",
-        url=_base_url + "/streams/",
+        url=_base_url + "/streams",
     )
 
 def make_get_streams():
     return PatchedRequest(
         method="GET",
-        url=_base_url + "/streams"
+        url=_base_url + "/streams",
     )
 
 def make_create_stream_entry():
     return PatchedRequest(
         method="POST",
-        url=_base_url + "/streams/{stream_id}/entries/",
+        url=_base_url + "/streams/{stream_id}/entries",
     )
 
 def make_get_stream_entries():
