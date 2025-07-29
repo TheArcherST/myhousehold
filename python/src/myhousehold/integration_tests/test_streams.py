@@ -1,7 +1,7 @@
 from deepdiff import DeepDiff
 from pydantic import BaseModel
 
-from .base import *  # noqa: F401, F403
+from . import api_templates
 
 
 def test_streams(

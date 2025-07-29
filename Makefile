@@ -1,6 +1,15 @@
+# related with migrations
 alembic:
-	docker compose run --rm tool-alembic $(command)
-migrations-run:
-	docker compose run --rm tool-alembic upgrade head
-migrations-generate:
-	docker compose run --rm tool-alembic revision -m $(m) $(msg) $(message) --autogenerate
+	docker compose run --rm --build tool-alembic $(command)
+run-migrations:
+	make alembic command="upgrade head"
+generate-migrations:
+	make alembic command="revision -m '$(m) $(msg) $(message)' --autogenerate"
+
+# related with end-user workflow
+up:
+	docker compose up --build -d && make run-migrations
+test:
+	docker compose run --rm --build run-integration-tests $(args)
+update:
+	git pull && make up && make test

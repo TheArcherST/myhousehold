@@ -1,5 +1,5 @@
 from argon2 import PasswordHasher
-from dishka import Provider, provide, Scope
+from dishka import Provider, Scope, provide
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from myhousehold.core.services.access import AccessService

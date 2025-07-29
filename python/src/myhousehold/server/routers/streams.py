@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, status
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
+from fastapi import APIRouter, HTTPException, status
 
 from myhousehold.core.models.stream import Stream
 from myhousehold.core.models.stream_entry import StreamEntry
@@ -8,11 +8,10 @@ from myhousehold.core.services.streams import StreamsService
 from myhousehold.core.services.uow_ctl import UoWCtl
 from myhousehold.server.schemas.streams import (
     CreateStreamDTO,
-    StreamDTO,
     CreateStreamEntryDTO,
+    StreamDTO,
     StreamEntryDTO,
 )
-
 
 router = APIRouter(
     prefix="/streams",

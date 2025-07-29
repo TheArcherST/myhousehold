@@ -1,12 +1,12 @@
 import secrets
 from uuid import UUID
 
-from argon2 import PasswordHasher, exceptions as argon2_exceptions
-
+from argon2 import PasswordHasher
+from argon2 import exceptions as argon2_exceptions
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from myhousehold.core.models import User, LoginSession
+from myhousehold.core.models import LoginSession, User
 
 
 class ServiceAccessError(Exception):
@@ -117,9 +117,9 @@ class AccessService:
     ) -> None:
         try:
             self.ph.verify(user.password_hash, password)
-        except argon2_exceptions.VerifyMismatchError:
+        except argon2_exceptions.VerifyMismatchError as e:
             await self._dummy_rehash()
-            raise ErrorUnauthorized
+            raise ErrorUnauthorized from e
 
         if self.ph.check_needs_rehash(user.password_hash):
             user.password_hash = self.ph.hash(password)

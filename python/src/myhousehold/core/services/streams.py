@@ -1,6 +1,7 @@
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -45,8 +46,10 @@ class StreamsService:
 
     def _accessible_streams_stmt(self):
         stmt = (select(Stream)
-                .where(or_(Stream.created_by_user_id == self.authorized_user.id,
-                           Stream.is_private.is_(False))))
+                .where(
+                    or_(Stream.created_by_user_id == self.authorized_user.id,
+                        Stream.is_private.is_(False)))
+                )
         return stmt
 
     async def get_streams(

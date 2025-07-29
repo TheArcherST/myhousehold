@@ -1,3 +1,6 @@
+from .login_session import (
+    LoginSession,
+)
 from .stream import (
     Stream,
 )
@@ -7,10 +10,6 @@ from .stream_entry import (
 from .user import (
     User,
 )
-from .login_session import (
-    LoginSession,
-)
-
 
 __all__ = [
     "Stream",

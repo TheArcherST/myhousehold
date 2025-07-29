@@ -1,16 +1,14 @@
 from logging.config import fileConfig
 
-from dishka import make_container
-from sqlalchemy import create_engine
-from sqlalchemy import pool
-
 from alembic import context
+from dishka import make_container
+from sqlalchemy import create_engine, pool
 
+from myhousehold.core.models.base import Base
 from myhousehold.core.providers import (
     ConfigPostgres,
     ProviderConfig,
 )
-from myhousehold.core.models.base import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

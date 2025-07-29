@@ -1,9 +1,12 @@
-from fastapi import FastAPI, Request, HTTPException, Response
+from fastapi import FastAPI, HTTPException, Request, Response
 
 from myhousehold.core.exceptions import DomainValueError
 
 
-async def domain_value_error_handler(request: Request, exc: DomainValueError) -> Response:
+async def domain_value_error_handler(
+        request: Request,
+        exc: DomainValueError,
+) -> Response:
     raise HTTPException(
         status_code=422,
         detail=exc.detail,

@@ -1,17 +1,16 @@
 import uvicorn
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from dishka import make_async_container
 from dishka.integrations.fastapi import setup_dishka
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from myhousehold.core.providers import ProviderConfig, ProviderDatabase
 from myhousehold.core.services.providers import ProviderServices
-from myhousehold.server.providers import ProviderServer
-
 from myhousehold.server import (
     exception_handlers,
     routers,
 )
+from myhousehold.server.providers import ProviderServer
 
 
 def main():

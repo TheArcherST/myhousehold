@@ -1,9 +1,9 @@
-from typing import AsyncGenerator, Iterable
+from collections.abc import AsyncGenerator, Iterable
 
 from dishka import Provider, Scope, provide
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy import create_engine, Engine
+from sqlalchemy import Engine, create_engine
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -38,14 +38,7 @@ class ConfigPostgres(BaseModel):
                 raise ValueError("Test database not specified")
             database = self.test_database
 
-        return "postgresql+{}://{}:{}@{}:{}/{}".format(
-            driver,
-            self.user,
-            self.password,
-            self.host,
-            self.port,
-            database,
-        )
+        return f"postgresql+{driver}://{self.user}:{self.password}@{self.host}:{self.port}/{database}"
 
 
 class ConfigMyHousehold(BaseSettings):
@@ -85,7 +78,7 @@ class ProviderDatabase(Provider):
     async def get_database_session(
         self,
         engine: AsyncEngine,
-    ) -> AsyncGenerator[AsyncSession, None]:
+    ) -> AsyncGenerator[AsyncSession]:
         async with AsyncSession(
                 engine,
                 expire_on_commit=False,

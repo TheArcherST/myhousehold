@@ -5,9 +5,8 @@ from uuid import UUID
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .user import User
-
 from .base import Base
+from .user import User
 
 
 class LoginSession(Base):

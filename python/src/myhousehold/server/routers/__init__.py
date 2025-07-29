@@ -5,7 +5,6 @@ from . import (
     streams,
 )
 
-
 router = APIRouter()
 
 

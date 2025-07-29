@@ -29,3 +29,20 @@ run-rest-server = "myhousehold.server.main.run_rest_server:main"
 
 [tool.ruff]
 line-length = 79
+extend-exclude = ["alembic"]
+
+[tool.ruff.lint]
+select = [
+    # pycodestyle
+    "E",
+    # Pyflakes
+    "F",
+    # pyupgrade
+    "UP",
+    # flake8-bugbear
+    "B",
+    # flake8-simplify
+    "SIM",
+    # isort
+    "I",
+]

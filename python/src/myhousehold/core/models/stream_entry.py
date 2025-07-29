@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import jsonschema
 from jsonschema.exceptions import ValidationError
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from myhousehold.core.exceptions import DomainValueError
 
@@ -35,7 +34,8 @@ class StreamEntry(Base):
 
     @validates("json_data")
     def validate_json_data(self, key, value):
-        assert self.stream is not None, "Developer must ensure loading of this relationship"
+        assert self.stream is not None, \
+            "Developer must ensure loading of this relationship"
 
         try:
             jsonschema.validate(value, self.stream.json_schema)

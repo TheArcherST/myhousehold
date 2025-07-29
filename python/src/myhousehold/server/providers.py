@@ -2,19 +2,16 @@ import uuid
 from typing import NewType
 from uuid import UUID
 
-from dishka import Provider, provide, Scope, from_context
-from fastapi import HTTPException, FastAPI
+from dishka import Provider, Scope, from_context, provide
+from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
-
 from starlette.testclient import TestClient
 
-from myhousehold.core.models import User, LoginSession
+from myhousehold.core.models import LoginSession, User
 from myhousehold.core.services.access import AccessService, ErrorUnauthorized
-
 
 AuthorizedUser = NewType("AuthorizedUser", User)
 CurrentLoginSession = NewType("CurrentLoginSession", LoginSession)
-
 
 class ProviderServer(Provider):
     app = from_context(FastAPI, scope=Scope.SESSION)
@@ -30,13 +27,26 @@ class ProviderServer(Provider):
             request: Request,
             access_service: AccessService,
     ) -> CurrentLoginSession:
+        login_session_uid = request.headers.get(
+            "X-Login-Session-Uid",
+            str(uuid.uuid4()),
+        )
+        login_session_uid = UUID(login_session_uid)
+        login_session_token = request.headers.get(
+            "X-Login-Session-Token",
+            "stub-token",
+        )
+
         try:
             login_session = await access_service.lookup_login_session(
-                login_session_uid=UUID(request.headers.get("X-Login-Session-Uid", str(uuid.uuid4()))),
-                login_session_token=request.headers.get("X-Login-Session-Token", "stub-token"),
+                login_session_uid=login_session_uid,
+                login_session_token=login_session_token,
             )
-        except ErrorUnauthorized:
-            raise HTTPException(status_code=401, detail="Invalid login session")
+        except ErrorUnauthorized as e:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid login session",
+            ) from e
 
         return CurrentLoginSession(login_session)
 

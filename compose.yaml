@@ -11,7 +11,11 @@ services:
       POSTGRES_USER: ${COMPOSE__POSTGRES__USER}
       POSTGRES_PASSWORD: ${COMPOSE__POSTGRES__PASSWORD}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready", "-d", "${COMPOSE__POSTGRES__DATABASE}" ]
+      test: [
+        "CMD-SHELL", "pg_isready",
+        "-d", "${COMPOSE__POSTGRES__DATABASE}",
+        "-U", "${COMPOSE__POSTGRES__USER}"
+      ]
       interval: 30s
       timeout: 60s
       retries: 5
@@ -28,13 +32,12 @@ services:
   tool-alembic:
     profiles:
       - tools
-    build:
-      context: ./python
-      args:
-        - EXTERNAL_UID=${COMPOSE__UID}
-        - EXTERNAL_GID=${COMPOSE__GID}
+    build: ./python
     entrypoint: /usr/src/app/alembic-entrypoint.sh
     restart: never
+    environment:
+      EXTERNAL_UID: ${COMPOSE__UID}
+      EXTERNAL_GID: ${COMPOSE__GID}
     env_file: ./python/.env
     depends_on:
       postgres:
