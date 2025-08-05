@@ -14,16 +14,16 @@ def make_get_streams():
         url=_base_url + "/streams",
     )
 
-def make_create_stream_entry():
+def make_create_stream_proposition():
     return PatchedRequest(
         method="POST",
-        url=_base_url + "/streams/{stream_id}/entries",
+        url=_base_url + "/streams/{stream_id}/propositions",
     )
 
-def make_get_stream_entries():
+def make_get_stream_propositions():
     return PatchedRequest(
         method="GET",
-        url=_base_url + "/streams/{stream_id}/entries",
+        url=_base_url + "/streams/{stream_id}/propositions",
     )
 
 def make_register():

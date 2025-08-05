@@ -51,8 +51,9 @@ class AccessService:
         :raise ErrorUnauthorized:
         """
 
-        # note: timing-attack protected, but registration will expose
-        #  if user with the username registered or not nevertheless.
+        # note: timing-attack protected, but registration may expose
+        #  if user with the username registered or not nevertheless, if it's
+        #  not protected from unauthorized access.
 
         user = await self._identify_user(username)
         if user is None:

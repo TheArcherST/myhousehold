@@ -17,11 +17,11 @@ if TYPE_CHECKING:
     from . import Stream, User
 
 
-class StreamEntry(Base):
-    __tablename__ = "stream_entry"
+class Proposition(Base):
+    __tablename__ = "proposition"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    json_data: Mapped[dict] = mapped_column(JSON())
+    json_object: Mapped[dict] = mapped_column(JSON())
     comment: Mapped[str | None]
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     updated_at: Mapped[datetime | None]
@@ -30,10 +30,10 @@ class StreamEntry(Base):
     created_by_user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     stream: Mapped[Stream] = relationship()
-    created_by_user: Mapped[User] = relationship()
+    asserted_by_user: Mapped[User] = relationship()
 
-    @validates("json_data")
-    def validate_json_data(self, key, value):
+    @validates("json_object")
+    def validate_json_object(self, key, value):
         assert self.stream is not None, \
             "Developer must ensure loading of this relationship"
 
@@ -41,7 +41,7 @@ class StreamEntry(Base):
             jsonschema.validate(value, self.stream.json_schema)
         except ValidationError as e:
             raise DomainValueError(
-                detail="Json data schema does not match stream scheme",
+                detail="JSON data does not match JSON schema of the stream",
             ) from e
 
         return value

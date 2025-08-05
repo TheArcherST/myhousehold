@@ -1,16 +1,18 @@
+from collections.abc import Iterable
+
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, HTTPException, status
 
+from myhousehold.core.models import Proposition
 from myhousehold.core.models.stream import Stream
-from myhousehold.core.models.stream_entry import StreamEntry
 from myhousehold.core.services.streams import StreamsService
 from myhousehold.core.services.uow_ctl import UoWCtl
 from myhousehold.server.schemas.streams import (
     CreateStreamDTO,
-    CreateStreamEntryDTO,
+    CreateStreamPropositionDTO,
     StreamDTO,
-    StreamEntryDTO,
+    StreamPropositionDTO,
 )
 
 router = APIRouter(
@@ -33,6 +35,7 @@ async def create_stream(
         name=payload.name,
         json_schema=payload.json_schema,
         is_private=payload.is_private,
+        is_record_intent=True,
     )
     await uow_ctl.commit()
     return stream
@@ -52,17 +55,17 @@ async def get_streams(
 
 
 @router.post(
-    "/{stream_id}/entries",
-    response_model=StreamEntryDTO,
+    "/{stream_id}/propositions",
+    response_model=StreamPropositionDTO,
     status_code=status.HTTP_201_CREATED,
 )
 @inject
-async def create_stream_entry(
+async def create_stream_proposition(
         streams_service: FromDishka[StreamsService],
         uow_ctl: FromDishka[UoWCtl],
         stream_id: int,
-        payload: CreateStreamEntryDTO,
-) -> StreamEntry:
+        payload: CreateStreamPropositionDTO,
+) -> Proposition:
     stream = await streams_service.get_stream_with(
         id_=stream_id,
     )
@@ -72,51 +75,51 @@ async def create_stream_entry(
             detail="Stream not found",
         )
 
-    entry = await streams_service.create_stream_entry(
-        json_data=payload.json_data,
+    proposition = await streams_service.create_proposition(
+        json_object=payload.json_object,
         comment=payload.comment,
         stream=stream,
     )
 
     await uow_ctl.commit()
 
-    return entry
+    return proposition
 
 
 @router.get(
-    "/{stream_id}/entries",
-    response_model=list[StreamEntryDTO],
+    "/{stream_id}/propositions",
+    response_model=list[StreamPropositionDTO],
 )
 @inject
-async def get_stream_entries(
+async def get_stream_propositions(
         streams_service: FromDishka[StreamsService],
         stream_id: int,
-):
+) -> Iterable[Proposition]:
     stream = await streams_service.get_stream_with(
         id_=stream_id,
     )
-    return stream.entries
+    return stream.propositions
 
 
 @router.put(
-    "/{stream_id}/entries/{entry_id}",
-    response_model=StreamEntryDTO,
+    "/{stream_id}/propositions/{proposition_id}",
+    response_model=StreamPropositionDTO,
 )
 @inject
-async def put_stream_entry(
+async def put_stream_proposition(
         streams_service: FromDishka[StreamsService],
         uow_ctl: FromDishka[UoWCtl],
         stream_id: int,
-        entry_id: int,
-        payload: CreateStreamEntryDTO,
-) -> StreamEntry:
-    entry = await streams_service.put_stream_entry(
+        proposition_id: int,
+        payload: CreateStreamPropositionDTO,
+) -> Proposition:
+    proposition = await streams_service.put_stream_proposition(
         stream_id=stream_id,
-        entry_id=entry_id,
-        json_data=payload.json_data,
+        proposition_id=proposition_id,
+        json_object=payload.json_object,
         comment=payload.comment,
     )
-    if entry is None:
+    if proposition is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Stream or entry not found",
@@ -124,4 +127,4 @@ async def put_stream_entry(
 
     await uow_ctl.commit()
 
-    return entry
+    return proposition

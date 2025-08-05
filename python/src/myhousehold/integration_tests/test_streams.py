@@ -37,13 +37,13 @@ def test_streams(
     r = authed_client.prepsend(req)
     assert r.status_code == 200
 
-    # create demo entry
-    req = api_templates.make_create_stream_entry()
+    # create demo record
+    req = api_templates.make_create_stream_proposition()
     req.path_params = {
         "stream_id": val_stream_id,
     }
     req.json = {
-        "json_data": {"a": 5},
+        "json_object": {"a": 5},
         "comment": None,
     }
     r = client.prepsend(req)
@@ -52,18 +52,18 @@ def test_streams(
     assert r.status_code == 201
     assert r.json()
 
-    req = api_templates.make_create_stream_entry()
+    req = api_templates.make_create_stream_proposition()
     req.path_params = {
         "stream_id": val_stream_id,
     }
     req.json = {
-        "json_data": {"a": "value-with-invalid-type"},
+        "json_object": {"a": "value-with-invalid-type"},
         "comment": None,
     }
     r = authed_client.prepsend(req)
     assert r.status_code == 422
 
-    req = api_templates.make_get_stream_entries()
+    req = api_templates.make_get_stream_propositions()
     req.path_params = {
         "stream_id": val_stream_id,
     }

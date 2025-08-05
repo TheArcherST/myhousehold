@@ -9,6 +9,6 @@ class User(Base):
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str]
+    username: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
     is_system: Mapped[bool] = mapped_column(default=False)

@@ -16,12 +16,16 @@ class StreamDTO(BaseDTO):
     is_private: bool
 
 
-class CreateStreamEntryDTO(BaseDTO):
-    json_data: dict[str, JsonValue]
+class CreateRecordIntent(BaseDTO):
+    pass
+
+
+class CreateStreamPropositionDTO(BaseDTO):
+    json_object: dict[str, JsonValue]
     comment: str | None
 
 
-class StreamEntryDTO(BaseDTO):
+class StreamPropositionDTO(BaseDTO):
     id: int
-    json_data: dict[str, JsonValue]
+    json_object: dict[str, JsonValue]
     comment: str | None

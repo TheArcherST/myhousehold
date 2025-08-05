@@ -1,12 +1,14 @@
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, Literal
 
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from myhousehold.core.models.intents.project import ProjectIntent
+from myhousehold.core.models.intents.record import RecordIntent
+from myhousehold.core.models.proposition import Proposition
 from myhousehold.core.models.stream import Stream
-from myhousehold.core.models.stream_entry import StreamEntry
 from myhousehold.server.providers import AuthorizedUser
 
 
@@ -32,12 +34,18 @@ class StreamsService:
             name: str,
             json_schema: dict[str, Any],
             is_private: bool,
+            is_record_intent: Literal[True],
     ) -> Stream:
+        assert is_record_intent
         stream = Stream(
             name=name,
             json_schema=json_schema,
             created_by_user_id=self.authorized_user.id,
             is_private=is_private,
+            record_intent=RecordIntent(
+                ttl=None,
+                errata_allowed=True,
+            ),
         )
         self.orm_session.add(stream)
         await self.orm_session.flush()
@@ -73,69 +81,70 @@ class StreamsService:
         stream = await self.orm_session.scalar(stmt)
         return stream
 
-    async def create_stream_entry(
+    async def create_proposition(
             self,
-            json_data: dict[str, Any],
+            json_object: dict[str, Any],
             comment: str | None,
             stream: Stream,
-    ) -> StreamEntry:
-        entry = StreamEntry(
+    ) -> Proposition:
+        proposition = Proposition(
             comment=comment,
             stream=stream,
-            created_by_user=self.authorized_user,
+            asserted_by_user=self.authorized_user,
         )
-        entry.json_data = json_data  # validation depends on stream
-        self.orm_session.add(entry)
+        proposition.json_object = json_object  # validation depends on stream
+        self.orm_session.add(proposition)
 
         await self.orm_session.flush()
 
-        return entry
+        return proposition
 
-    async def put_stream_entry(
+    async def put_stream_proposition(
             self,
             stream_id: int,
-            entry_id: int,
-            json_data: dict[str, Any],
+            proposition_id: int,
+            json_object: dict[str, Any],
             comment: str | None,
-    ) -> StreamEntry:
-        stmt = (select(StreamEntry)
-                .where(StreamEntry.stream_id == stream_id)
-                .where(StreamEntry.id == entry_id)
+    ) -> Proposition:
+        stmt = (select(Proposition)
+                .where(Proposition.stream_id == stream_id)
+                .where(Proposition.id == proposition_id)
                 .with_for_update()
-                .options(joinedload(StreamEntry.stream)))
-        entry = await self.orm_session.scalar(stmt)
+                .options(joinedload(Proposition.stream)))
+        proposition = await self.orm_session.scalar(stmt)
 
-        if not entry:
+        if not proposition:
             stmt = self._accessible_streams_stmt()
             stmt = stmt.with_for_update()
             stream = await self.orm_session.scalar(stmt)
             if stream is None:
                 raise StreamNotFoundError
-            entry = StreamEntry(
-                json_data=json_data,
+            proposition = Proposition(
+                json_object=json_object,
                 comment=comment,
-                created_by_user=self.authorized_user,
+                asserted_by_user=self.authorized_user,
                 stream=stream,
             )
-            self.orm_session.add(entry)
+            self.orm_session.add(proposition)
         else:
-            entry.json_data = json_data
-            entry.comment = comment
+            proposition.json_object = json_object
+            proposition.comment = comment
 
         await self.orm_session.flush()
-        return entry
+        return proposition
 
-    async def get_stream_entries(
+    async def get_stream_propositions(
             self,
             stream_id: int,
-    ) -> Iterable[StreamEntry]:
+    ) -> Iterable[Proposition]:
         # note: not used, but I want to test it
-        stmt = select(StreamEntry)
-        accessible_streams = self._accessible_streams_stmt().subquery()
+        stmt = select(Proposition)
+        accessible_propositions = self._accessible_streams_stmt().subquery()
         stmt = (stmt
                 .join_from(
-                    accessible_streams,
-                    onclause=StreamEntry.stream_id == accessible_streams.c.id)
-                .where(accessible_streams.c.id == stream_id))
+                    accessible_propositions,
+                    onclause=Proposition.stream_id
+                             == accessible_propositions.c.id)
+                .where(accessible_propositions.c.id == stream_id))
         scalars = await self.orm_session.scalars(stmt)
         return scalars.unique(lambda x: x.id)
